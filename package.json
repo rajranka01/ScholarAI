@@ -4,7 +4,7 @@
   "version": "4.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
@@ -18,7 +18,7 @@
     "@types/pdf-parse": "^1.1.5",
     "@vitejs/plugin-react": "^5.0.4",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.4.1",
+    "better-sqlite3": "^12.6.2",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
     "dotenv": "^17.2.3",
