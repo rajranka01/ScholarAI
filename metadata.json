@@ -1,0 +1,5 @@
+{
+  "name": "ScholarAI: Personal Research Assistant",
+  "description": "A production-grade research assistant to upload papers, chat with documents using RAG, visualize knowledge graphs, and generate citations.",
+  "requestFramePermissions": []
+}
