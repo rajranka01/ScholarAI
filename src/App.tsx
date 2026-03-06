@@ -193,7 +193,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight">ScholarAI</h1>
-              <span className="text-[10px] font-bold bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded uppercase tracking-wider">v1.0.0-stable</span>
+              <span className="text-[10px] font-bold bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded uppercase tracking-wider">v4.1.0</span>
             </div>
           </div>
           
