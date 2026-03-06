@@ -11,12 +11,7 @@ import {
   ChevronRight,
   Quote,
   History,
-  Search,
-  LogOut,
-  User as UserIcon,
-  Mail,
-  Lock,
-  ArrowRight
+  Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as d3 from 'd3';
@@ -39,19 +34,7 @@ interface Message {
   content: string;
 }
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-}
-
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [authForm, setAuthForm] = useState({ email: '', password: '', name: '' });
-  const [authError, setAuthError] = useState('');
-
   const [documents, setDocuments] = useState<Document[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -61,77 +44,17 @@ export default function App() {
   const graphRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
-    checkAuth();
+    fetchDocuments();
   }, []);
 
   useEffect(() => {
-    if (user) {
-      fetchDocuments();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (activeTab === 'graph' && user) {
+    if (activeTab === 'graph') {
       renderGraph();
     }
-  }, [activeTab, documents, user]);
-
-  const checkAuth = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setIsAuthLoading(false);
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/auth/me', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.user) setUser(data.user);
-      else localStorage.removeItem('token');
-    } catch (error) {
-      localStorage.removeItem('token');
-    } finally {
-      setIsAuthLoading(false);
-    }
-  };
-
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthError('');
-    const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
-    
-    try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(authForm),
-      });
-      const data = await res.json();
-      if (data.error) {
-        setAuthError(data.error);
-      } else {
-        localStorage.setItem('token', data.token);
-        setUser(data.user);
-      }
-    } catch (error) {
-      setAuthError('Authentication failed. Please try again.');
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setDocuments([]);
-    setMessages([]);
-  };
+  }, [activeTab, documents]);
 
   const fetchDocuments = async () => {
-    const token = localStorage.getItem('token');
-    const res = await fetch('/api/documents', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await fetch('/api/documents');
     const data = await res.json();
     setDocuments(data);
   };
@@ -142,11 +65,9 @@ export default function App() {
     const formData = new FormData();
     formData.append('file', e.target.files[0]);
 
-    const token = localStorage.getItem('token');
     try {
       await fetch('/api/upload', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
       });
       fetchDocuments();
@@ -164,14 +85,10 @@ export default function App() {
     setInput('');
     setIsChatting(true);
 
-    const token = localStorage.getItem('token');
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
       });
       const data = await res.json();
@@ -185,10 +102,7 @@ export default function App() {
 
   const renderGraph = async () => {
     if (!graphRef.current) return;
-    const token = localStorage.getItem('token');
-    const res = await fetch('/api/graph', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await fetch('/api/graph');
     const data = await res.json();
 
     const width = 800;
@@ -268,116 +182,6 @@ export default function App() {
     }
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-[#F8F9FA]">
-        <Loader2 className="animate-spin text-indigo-600" size={48} />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-[#F8F9FA] p-6">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-10">
-            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-lg shadow-indigo-200">
-              <BookOpen size={32} />
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">ScholarAI</h1>
-            <p className="text-gray-500">Your intelligent research companion</p>
-          </div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-8 rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50"
-          >
-            <div className="flex gap-4 mb-8 p-1 bg-gray-50 rounded-xl">
-              <button 
-                onClick={() => setAuthMode('login')}
-                className={cn(
-                  "flex-1 py-2 text-sm font-medium rounded-lg transition-all",
-                  authMode === 'login' ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                )}
-              >
-                Login
-              </button>
-              <button 
-                onClick={() => setAuthMode('register')}
-                className={cn(
-                  "flex-1 py-2 text-sm font-medium rounded-lg transition-all",
-                  authMode === 'register' ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                )}
-              >
-                Register
-              </button>
-            </div>
-
-            <form onSubmit={handleAuth} className="space-y-4">
-              {authMode === 'register' && (
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Full Name</label>
-                  <div className="relative">
-                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input 
-                      type="text" 
-                      required
-                      placeholder="John Doe"
-                      className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none"
-                      value={authForm.name}
-                      onChange={e => setAuthForm({ ...authForm, name: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input 
-                    type="email" 
-                    required
-                    placeholder="name@university.edu"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none"
-                    value={authForm.email}
-                    onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input 
-                    type="password" 
-                    required
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none"
-                    value={authForm.password}
-                    onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              {authError && (
-                <p className="text-xs text-red-500 font-medium ml-1">{authError}</p>
-              )}
-
-              <button 
-                type="submit"
-                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 group shadow-lg shadow-indigo-200"
-              >
-                {authMode === 'login' ? 'Sign In' : 'Create Account'}
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </form>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-screen bg-[#F8F9FA] text-[#1A1A1A] font-sans">
       {/* Sidebar */}
@@ -422,21 +226,14 @@ export default function App() {
         </nav>
 
         <div className="p-4 border-t border-[#E5E7EB]">
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl group relative">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
             <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xs">
-              {user.name.split(' ').map(n => n[0]).join('')}
+              RR
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user.name}</p>
+              <p className="text-sm font-medium truncate">Research Account</p>
               <p className="text-xs text-gray-500 truncate">Pro Plan</p>
             </div>
-            <button 
-              onClick={handleLogout}
-              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-              title="Logout"
-            >
-              <LogOut size={16} />
-            </button>
           </div>
         </div>
       </aside>
