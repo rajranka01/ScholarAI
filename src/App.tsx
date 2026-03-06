@@ -191,7 +191,10 @@ export default function App() {
             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white">
               <BookOpen size={24} />
             </div>
-            <h1 className="text-xl font-bold tracking-tight">ScholarAI</h1>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">ScholarAI</h1>
+              <span className="text-[10px] font-bold bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded uppercase tracking-wider">v1.0.0-stable</span>
+            </div>
           </div>
           
           <label className="flex items-center justify-center gap-2 w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl cursor-pointer transition-all shadow-sm">
